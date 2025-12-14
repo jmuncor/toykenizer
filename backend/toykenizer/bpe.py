@@ -1,9 +1,9 @@
 # Imports
-from os import replace
 import sys
 
 # Constants
 PATH_TO_FILE = "text.txt"
+VOCAB_SIZE = 276
 
 
 # Read file and encode text into the UTF-8 bytes
@@ -30,26 +30,36 @@ def most_common_pair(tokens: list[int]):
 
 # Mint the new token based on the most common pair
 def mint_token(tokens: list[int], pair_to_replace: tuple[int, int]):
-    new_token = max(tokens + [255]) + 1
+    minted_token = max(tokens + [255]) + 1
     new_tokens = []
 
     i = 0
     while i < len(tokens):
         if i + 1 < len(tokens) and (tokens[i], tokens[i + 1]) == pair_to_replace:
-            new_tokens.append(new_token)
+            new_tokens.append(minted_token)
             i += 2
         else:
             new_tokens.append(tokens[i])
             i += 1
 
-    return new_tokens
+    return new_tokens, minted_token
 
 
-# Main function
+#  Create the tokenizer and build it to a specific vocab_size
+def create(path: str = PATH_TO_FILE, vocab: int = VOCAB_SIZE):
+    tokens = get_tokens(path)
+    new_tokens = list(tokens)
+
+    merges = {}
+    for _ in range(vocab - 256):
+        common_pair = most_common_pair(new_tokens)
+        new_tokens, minted_token = mint_token(new_tokens, common_pair)
+        merges[common_pair] = minted_token
+
+    return new_tokens, merges
+
+
 def main():
-    tokens = get_tokens(PATH_TO_FILE)
-    common_pair = most_common_pair(tokens)
-    print(mint_token(tokens, common_pair))
     return 1
 
 

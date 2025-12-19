@@ -92,8 +92,9 @@ def decode(tokens: list[int], vocab: dict[int, bytes]) -> str:
 def encode(text: str, merges: dict[tuple[int, int], int]) -> list[int]:
     tokens = text.encode("utf-8")
     tokens = list(map(int, tokens))
+    sorted_merges = sorted(merges.items(), key=lambda item: item[1])
 
-    for pair, id in merges.items():
+    for pair, id in sorted_merges:
         new_tokens = []
         j = 0
         while j < len(tokens):

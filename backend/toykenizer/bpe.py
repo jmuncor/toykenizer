@@ -47,6 +47,11 @@ def mint_token(tokens: list[int], pair_to_replace: tuple[int, int]):
 
 #  Create the tokenizer and build it to a specific vocab_size
 def create(path: str = PATH_TO_FILE, vocab_size: int = VOCAB_SIZE):
+    if VOCAB_SIZE < 256:
+        raise ValueError(
+            "The desired vocab sixe cannot be smaller than the base byte vocab"
+        )
+
     tokens = get_tokens(path)
     new_tokens = list(tokens)
 
@@ -60,12 +65,12 @@ def create(path: str = PATH_TO_FILE, vocab_size: int = VOCAB_SIZE):
 
 
 # Function to generate the full vocab using a dictionary of the new tokens
-def build_vocabulary(new_tokens: dict[tuple[int, int], int]) -> dict[int, bytes]:
+def build_vocabulary(merges: dict[tuple[int, int], int]) -> dict[int, bytes]:
     vocab = {}
     for i in range(256):
         vocab[i] = bytes([i])
 
-    for (t0, t1), i in new_tokens.items():
+    for (t0, t1), i in merges.items():
         vocab[i] = vocab[t0] + vocab[t1]
 
     return vocab
@@ -84,8 +89,23 @@ def decode(tokens: list[int], vocab: dict[int, bytes]) -> str:
 
 
 # Encode
-def encode(text: str, vocab: dict[int, bytes]) -> list[int]:
-    return []
+def encode(text: str, merges: dict[tuple[int, int], int]) -> list[int]:
+    tokens = text.encode("utf-8")
+    tokens = list(map(int, tokens))
+
+    for pair, id in merges.items():
+        new_tokens = []
+        j = 0
+        while j < len(tokens):
+            if j + 1 < len(tokens) and (tokens[j], tokens[j + 1]) == pair:
+                new_tokens.append(id)
+                j += 2
+            else:
+                new_tokens.append(tokens[j])
+                j += 1
+        tokens = new_tokens
+
+    return tokens
 
 
 def main():

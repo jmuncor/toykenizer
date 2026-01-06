@@ -1,22 +1,11 @@
 # Imports
 import sys
-import json
-
-# Constants
-PATH_TO_FILE = "text.txt"
-VOCAB_SIZE = 276
 
 
 class BPETokenizer:
     def __init__(self):
         self.merges = {}
         self.vocab = {}
-
-    def _get_tokens(self, path: str):
-        file = open(path, "r")
-        content = file.read()
-        tokens = content.encode("utf-8")
-        return list(map(int, tokens))
 
     def _most_common_pair(self, tokens: list[int]):
         freq_counts = {}
@@ -55,18 +44,24 @@ class BPETokenizer:
 
         return vocab
 
-    def train(self, path: str, vocab_size: int):
+    def train(self, text: str, vocab_size: int):
         if vocab_size < 256:
             raise ValueError(
                 "The desired vocab sixe cannot be smaller than the base byte vocab"
             )
 
-        tokens = self._get_tokens(path)
+        tokens = list(map(int, text.encode("utf-8")))
         new_tokens = list(tokens)
 
         merges = {}
         for _ in range(vocab_size - 256):
-            common_pair = self._most_common_pair(new_tokens)
+            if len(new_tokens) < 2:
+                break
+            try:
+                common_pair = self._most_common_pair(new_tokens)
+            except StopIteration:
+                break
+
             new_tokens, minted_token = self._mint_token(new_tokens, common_pair)
             merges[common_pair] = minted_token
 
@@ -104,19 +99,14 @@ class BPETokenizer:
 
         return tokens
 
-    def save(self, path: str):
+    def save(self):
         merges = {}
         for pair, id in self.merges.items():
             key = f"{pair[0]},{pair[1]}"
             merges[key] = id
+        return merges
 
-        with open(path, "w") as f:
-            json.dump(merges, f)
-
-    def load(self, path: str):
-        with open(path, "r") as f:
-            loaded_merges = json.load(f)
-
+    def load(self, loaded_merges: dict):
         merges = {}
         for pair, id in loaded_merges.items():
             key = tuple(map(int, pair.split(",")))
@@ -132,3 +122,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

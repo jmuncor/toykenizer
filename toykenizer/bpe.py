@@ -1,7 +1,6 @@
 # Imports
 import sys
 
-
 class BPETokenizer:
     def __init__(self):
         self.merges = {}
@@ -118,7 +117,6 @@ class BPETokenizer:
 
 def main():
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

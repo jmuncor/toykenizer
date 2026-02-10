@@ -28,4 +28,4 @@ with open("model.json") as f:
 
 ## Pre-trained models
 
-A tokenizer trained on Harry Potter text is included in `models/harry-potter-tokenizer/`.
+A tokenizer trained on Harry Potter text is included in `models/harry-potter/`.
